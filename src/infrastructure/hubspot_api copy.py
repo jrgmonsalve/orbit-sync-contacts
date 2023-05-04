@@ -26,26 +26,14 @@ class HubSpotContactRepository(ContactRepository):
         else:
             raise Exception("Failed to create contact in HubSpot")
         
-    def get_contacts_by_property(property_name: str, property_value: str) -> List[Contact]:
-        api_key = settings.hubspot["api_key"]
-        headers = {"Authorization": f"Bearer {api_key}"}
-        url = f"https://api.hubapi.com/contacts/v1/lists/all/contacts/all?property={property_name}&property={property_value}"
-        response = requests.get(url, headers=headers)
+    def create_clickup_task(contact: Contact):
+        token = settings.clickup["token"]
+        list_id = settings.clickup["list_id"]
+        url = f"https://api.clickup.com/api/v2/list/{list_id}/task"
+        headers = {"Authorization": token}
+        data = {
+            "name": contact.firstname + " " + contact.lastname
+            # TODO fill in the rest of the data
+        }
+        response = requests.post(url, headers=headers, json=data)
         response.raise_for_status()
-        data = response.json()
-        contacts = []
-        for contact in data['contacts']:
-       
-            email = contact.get('email', {}).get('value', '')
-            firstname = contact.get('firstname', {}).get('value', '')
-            lastname = contact.get('lastname', {}).get('value', '')
-            phone = contact.get('phone', {}).get('value', '')
-            website = contact.get('website', {}).get('value', '')
-            contacts.append(Contact(
-                email=email
-                ,firstname=firstname
-                ,lastname=lastname
-                ,phone=phone
-                ,website=website
-                ))
-        return contacts
